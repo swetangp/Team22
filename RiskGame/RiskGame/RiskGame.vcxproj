@@ -115,6 +115,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\Desktop\CPP\Projects\A1\Card.h" />
+    <ClInclude Include="..\..\..\..\..\Desktop\CPP\Projects\A1\Continent.h" />
+    <ClInclude Include="..\..\..\..\..\Desktop\CPP\Projects\A1\Deck.h" />
+    <ClInclude Include="..\..\..\..\..\Desktop\CPP\Projects\A1\DiceRoller.h" />
+    <ClInclude Include="..\..\..\..\..\Desktop\CPP\Projects\A1\Hand.h" />
+    <ClInclude Include="..\..\..\..\..\Desktop\CPP\Projects\A1\Map.h" />
+    <ClInclude Include="..\..\..\..\..\Desktop\CPP\Projects\A1\Player.h" />
+    <ClInclude Include="..\..\..\..\..\Desktop\CPP\Projects\A1\Territory.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\Desktop\CPP\Projects\A1\A1Main.cpp" />
+    <ClCompile Include="..\..\..\..\..\Desktop\CPP\Projects\A1\Deck.cpp" />
+    <ClCompile Include="..\..\..\..\..\Desktop\CPP\Projects\A1\DiceRoller.cpp" />
+    <ClCompile Include="..\..\..\..\..\Desktop\CPP\Projects\A1\Player.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
