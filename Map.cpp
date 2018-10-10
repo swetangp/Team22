@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <sstream>
 #include <string>
 using namespace std;
 
@@ -36,18 +37,18 @@ class Territory
 {
 	public:
 		Territory();
-		Territory(string n, int cont, int pl, int ar)
+		Territory(string n, int pl, int ar, string cont)
 		{
-			continent = cont;
 			name = n;
 			player = pl;
 			army = ar;
+			continent = cont;
 		}
 		string getName()
 		{
 			return name;
 		}
-		int getContinent()
+		string getContinent()
 		{
 			return continent;
 		}
@@ -75,10 +76,18 @@ class Territory
 			cout << endl;
 		}
 		string name;
-		int continent;
+		string continent;
 		int player;
 		int army;
 		vector<Connection> connection;
+};
+class MapLoader
+{
+
+	public:
+		MapLoader();
+		
+	
 };
 
 class Map
@@ -99,97 +108,174 @@ class Map
 				point[i]->display();
 			}
 		}
+		void loadMap(string inputFile)
+		{
+			const int size = 42;
+
+			int count = 0;
+			int esc = 0;
+			ifstream sizeOfArray("random.txt");
+			vector<string> arraySize;
+			if (sizeOfArray.is_open())
+			{
+
+				string line;
+				while (esc == 0)
+				{
+					getline(sizeOfArray, line);
+					stringstream notData(line);
+					string blank;
+					getline(notData, blank, ',');
+
+					if (blank == "[Territories]")
+					{
+						esc = 1;
+					}
+				}
+				while (getline(sizeOfArray, line))
+				{
+					stringstream det(line);
+					string estTerr;
+					getline(det, estTerr, ',');
+					if (estTerr != "")
+					{
+						count++;
+						arraySize.push_back(estTerr);
+					}
+				}
+				//cout << arraySize.size() << endl;
+			}
+			sizeOfArray.close();
+
+			//Establishing all territories by reading the file once
+			//Territory* t;
+			//t = new Territory[count];
+			Territory t[size] = {};
+			ifstream terNames("random.txt");
+			if (terNames.is_open())
+			{
+				int i = 0;
+				string line;
+				esc = 0;
+				while (esc == 0)
+				{
+					getline(terNames, line);
+					stringstream notData(line);
+					string blank;
+					getline(notData, blank, ',');
+
+					if (blank == "[Territories]")
+					{
+						esc = 1;
+					}
+				}
+				while (getline(terNames, line))
+				{
+					stringstream ss1(line);
+					string estTerr;
+					getline(ss1, estTerr, ',');
+					if (estTerr != "")
+					{
+						t[i] = Territory(estTerr, 0, 0, "null");
+						i++;
+					}
+				}
+			}
+			terNames.close();
+			//This will allow the program to establish the edges of each territory.
+			Map RiskBoard;
+
+			Territory* tp[size];
+
+			for (int i = 0; i < size; i++)
+			{
+				tp[i] = &t[i];
+			}
+			//Establishing all values written in each line
+			ifstream loadRest("random.txt");
+			if (loadRest.is_open())
+			{
+				int i = 0;
+				string line;
+				esc = 0;
+				while (esc == 0)
+				{
+					getline(loadRest, line);
+					stringstream notData(line);
+					string blank;
+					getline(notData, blank, ',');
+
+					if (blank == "[Territories]")
+					{
+						esc = 1;
+					}
+				}
+
+				while (getline(loadRest, line))
+				{
+					//Gathering the territory, integer values, and continent
+					stringstream ss(line);
+					string TerritoryPoint, continent, num1, num2;
+					getline(ss, TerritoryPoint, ',');
+					getline(ss, num1, ',');
+					getline(ss, num2, ',');
+					getline(ss, continent, ','); //cout << "" << continent << " ";
+
+					//Since the numerical values are of type string they need to be converted to integers here and stored
+					stringstream convert(num1);;
+					int iNum1 = 0;
+					convert >> iNum1;
+					int iNum2 = 0;
+					stringstream convert1(num2);
+					convert1 >> iNum2;
+					if (TerritoryPoint != "")
+					{
+						t[i] = Territory(TerritoryPoint, iNum1, iNum2, continent);
+
+						//Creating the connecting points to the territory
+						vector<string> connection;
+						string terConnects;
+						while (getline(ss, terConnects, ','))
+						{
+							connection.push_back(terConnects);
+							for (int z = 0; z < size; z++)
+							{
+								if (terConnects == t[z].getName())
+								{
+									t[i].createConnection(tp[z], NULL);
+									z = size + 1;
+								}
+
+							}
+						}
+					}
+					if (TerritoryPoint == "")
+					{
+						i--;
+					}
+					i++;
+				}
+			}
+
+			loadRest.close();
+			for (int i = 0; i < size; i++)
+			{
+				tp[i] = &t[i];
+			}
+			for (int j = 0; j < size; j++)
+			{
+				RiskBoard.create(tp[j]);
+			}
+
+			RiskBoard.printMap();
+		}
 	private:
 		vector<Territory*> point;
 };
 int main()
 {
-	//Establishin territories and which continent they belong to
-	Territory t[42] = {};
-	t[0] = Territory("Alaska",1,0,0); t[1] = Territory("Alberta",1, 0, 0); t[2] = Territory("Central America",1, 0, 0); t[3] = Territory("Eastern United States",1, 0, 0); t[4] = Territory("Greendland",1, 0, 0);
-	t[5] = Territory("Northwest Territory",1, 0, 0); t[6] = Territory("Ontario",1, 0, 0); t[7] = Territory("Quebec",1, 0, 0); t[8] = Territory("Western United States",1, 0, 0);
-
-	t[9] = Territory("Argentina",2, 0, 0); t[10] = Territory("Brazil",2, 0, 0); t[11] = Territory("Peru",2, 0, 0); t[12] = Territory("Venezuela",2, 0, 0);
-
-	t[13] = Territory("Great Britain",3, 0, 0); t[14] = Territory("Iceland",3, 0, 0); t[15] = Territory("Northern Europe",3, 0, 0); t[16] = Territory("Scandinavia",3, 0, 0);
-	t[17] = Territory("Southern Europe",3, 0, 0); t[18] = Territory("Ukraine",3, 0, 0); t[19] = Territory("Western Europe",3, 0, 0);
-	
-	t[20] = Territory("Congo",4, 0, 0); t[21] = Territory("East Africa",4, 0, 0); t[22] = Territory("Egypt",4, 0, 0); t[23] = Territory("Madagascar",4, 0, 0); t[24] = Territory("North Africa",4, 0, 0); t[25] = Territory("South Africa",4, 0, 0);
-	
-	t[26] = Territory("Afghanistan",5, 0, 0); t[27] = Territory("China",5, 0, 0); t[28] = Territory("India",5, 0, 0); t[29] = Territory("Irkutsk",5, 0, 0); t[30] = Territory("Japan",5, 0, 0); t[31] = Territory("Kamchatka",5, 0, 0);
-	t[32] = Territory("Middle East",5, 0, 0); t[33] = Territory("Mongolia",5, 0, 0); t[34] = Territory("Siam",5, 0, 0); t[35] = Territory("Siberia",5, 0, 0); t[36] = Territory("Ural",5, 0, 0); t[37] = Territory("Yakutsk",5, 0, 0);
-	
-	t[38] = Territory("Eastern Austrailia",6, 0, 0); t[39] = Territory("Indonesia",6, 0, 0); t[40] = Territory("New Guinea",6, 0, 0); t[41] = Territory("Western Austrailia",6, 0, 0);
-	
-	Map RiskBoard;
-
-	Territory* tp[42];
-	for (int i = 0; i < 42; i++)
-	{
-		tp[i] = &t[i];
-	}
-	//Creating connection between territories
-	
-	//North America
-	t[0].createConnection(tp[5], NULL); t[0].createConnection(tp[1], NULL); t[0].createConnection(tp[18], NULL);
-	t[1].createConnection(tp[5], NULL); t[1].createConnection(tp[0], NULL); t[1].createConnection(tp[8], NULL); t[1].createConnection(tp[6], NULL);
-	t[2].createConnection(tp[3], NULL); t[2].createConnection(tp[8], NULL); t[2].createConnection(tp[12], NULL);
-	t[3].createConnection(tp[2], NULL); t[3].createConnection(tp[2], NULL); t[3].createConnection(tp[6], NULL); t[4].createConnection(tp[7], NULL);
-	t[4].createConnection(tp[7], NULL); t[4].createConnection(tp[5], NULL); t[4].createConnection(tp[6], NULL); t[4].createConnection(tp[7], NULL); t[4].createConnection(tp[14], NULL);
-	t[5].createConnection(tp[0], NULL); t[5].createConnection(tp[1], NULL); t[5].createConnection(tp[6], NULL); t[5].createConnection(tp[4], NULL);
-	t[6].createConnection(tp[1], NULL); t[6].createConnection(tp[5], NULL); t[6].createConnection(tp[7], NULL); t[6].createConnection(tp[4], NULL); t[6].createConnection(tp[3], NULL); t[6].createConnection(tp[8], NULL);
-	t[7].createConnection(tp[4], NULL); t[7].createConnection(tp[6], NULL); t[7].createConnection(tp[3], NULL);
-	t[8].createConnection(tp[2], NULL); t[8].createConnection(tp[3], NULL); t[8].createConnection(tp[1], NULL); t[8].createConnection(tp[6], NULL);
-	
-	//South America
-	t[9].createConnection(tp[10], NULL); t[9].createConnection(tp[11], NULL);
-	t[10].createConnection(tp[9], NULL); t[10].createConnection(tp[11], NULL); t[10].createConnection(tp[12], NULL); t[10].createConnection(tp[24], NULL);
-	t[11].createConnection(tp[9], NULL); t[11].createConnection(tp[10], NULL); t[11].createConnection(tp[12], NULL);
-	t[12].createConnection(tp[10], NULL); t[12].createConnection(tp[11], NULL);
-	
-	//Europe
-	t[13].createConnection(tp[14], NULL); t[13].createConnection(tp[16], NULL); t[13].createConnection(tp[19], NULL); t[13].createConnection(tp[15], NULL);
-	t[14].createConnection(tp[4], NULL); t[14].createConnection(tp[13], NULL); t[14].createConnection(tp[16], NULL);
-	t[15].createConnection(tp[13], NULL); t[15].createConnection(tp[16], NULL); t[15].createConnection(tp[19], NULL); t[15].createConnection(tp[17], NULL); t[15].createConnection(tp[18], NULL);
-	t[16].createConnection(tp[13], NULL); t[16].createConnection(tp[14], NULL); t[16].createConnection(tp[15], NULL); t[16].createConnection(tp[18], NULL);
-	t[17].createConnection(tp[19], NULL); t[17].createConnection(tp[18], NULL); t[17].createConnection(tp[15], NULL); t[17].createConnection(tp[22], NULL); t[17].createConnection(tp[24], NULL); t[17].createConnection(tp[32], NULL);
-	t[18].createConnection(tp[17], NULL); t[18].createConnection(tp[16], NULL); t[18].createConnection(tp[15], NULL); t[18].createConnection(tp[26], NULL); t[18].createConnection(tp[32], NULL); t[18].createConnection(tp[36], NULL);
-	t[19].createConnection(tp[13], NULL); t[19].createConnection(tp[15], NULL); t[19].createConnection(tp[17], NULL); t[19].createConnection(tp[24], NULL);
-	
-	//Africa
-	t[20].createConnection(tp[21], NULL); t[20].createConnection(tp[25], NULL); t[20].createConnection(tp[24], NULL);
-	t[21].createConnection(tp[20], NULL); t[21].createConnection(tp[22], NULL); t[21].createConnection(tp[23], NULL); t[21].createConnection(tp[24], NULL); t[21].createConnection(tp[25], NULL); t[21].createConnection(tp[32], NULL);
-	t[22].createConnection(tp[17], NULL); t[22].createConnection(tp[24], NULL); t[22].createConnection(tp[21], NULL); t[22].createConnection(tp[32], NULL);
-	t[23].createConnection(tp[21], NULL); t[23].createConnection(tp[25], NULL);
-	t[24].createConnection(tp[10], NULL); t[24].createConnection(tp[20], NULL); t[24].createConnection(tp[21], NULL); t[24].createConnection(tp[22], NULL); t[24].createConnection(tp[17], NULL); t[24].createConnection(tp[19], NULL);
-	t[25].createConnection(tp[23], NULL); t[25].createConnection(tp[20], NULL); t[25].createConnection(tp[21], NULL);
-	
-	//Asia
-	t[26].createConnection(tp[18], NULL); t[26].createConnection(tp[32], NULL); t[26].createConnection(tp[36], NULL); t[26].createConnection(tp[27], NULL); t[26].createConnection(tp[28], NULL);
-	t[27].createConnection(tp[26], NULL); t[27].createConnection(tp[28], NULL); t[27].createConnection(tp[34], NULL); t[27].createConnection(tp[33], NULL); t[27].createConnection(tp[35], NULL); t[27].createConnection(tp[36], NULL);
-	t[28].createConnection(tp[26], NULL); t[28].createConnection(tp[27], NULL); t[28].createConnection(tp[32], NULL); t[28].createConnection(tp[34], NULL);
-	t[29].createConnection(tp[35], NULL); t[29].createConnection(tp[37], NULL); t[29].createConnection(tp[31], NULL); t[29].createConnection(tp[33], NULL);
-	t[30].createConnection(tp[31], NULL); t[30].createConnection(tp[33], NULL);
-	t[31].createConnection(tp[37], NULL); t[31].createConnection(tp[29], NULL); t[31].createConnection(tp[33], NULL); t[31].createConnection(tp[30], NULL); t[31].createConnection(tp[0], NULL);
-	t[32].createConnection(tp[21], NULL); t[32].createConnection(tp[22], NULL); t[32].createConnection(tp[17], NULL); t[32].createConnection(tp[18], NULL); t[32].createConnection(tp[26], NULL); t[32].createConnection(tp[28], NULL);
-	t[33].createConnection(tp[29], NULL); t[33].createConnection(tp[27], NULL); t[33].createConnection(tp[30], NULL); t[33].createConnection(tp[31], NULL); t[33].createConnection(tp[35], NULL);
-	t[34].createConnection(tp[27], NULL); t[34].createConnection(tp[28], NULL); t[34].createConnection(tp[39], NULL);
-	t[35].createConnection(tp[29], NULL); t[35].createConnection(tp[27], NULL); t[35].createConnection(tp[33], NULL); t[35].createConnection(tp[37], NULL); t[35].createConnection(tp[36], NULL);
-	t[36].createConnection(tp[18], NULL); t[36].createConnection(tp[26], NULL); t[36].createConnection(tp[35], NULL); t[36].createConnection(tp[27], NULL);
-	t[37].createConnection(tp[35], NULL); t[37].createConnection(tp[29], NULL); t[37].createConnection(tp[31], NULL);
-	
-	//Oceania
-	t[38].createConnection(tp[40], NULL); t[38].createConnection(tp[41], NULL);
-	t[39].createConnection(tp[34], NULL); t[39].createConnection(tp[40], NULL); t[39].createConnection(tp[41], NULL);
-	t[40].createConnection(tp[39], NULL); t[40].createConnection(tp[38], NULL); t[40].createConnection(tp[41], NULL);
-	t[41].createConnection(tp[38], NULL); t[41].createConnection(tp[39], NULL); t[41].createConnection(tp[40], NULL);
-
-	for (int j = 0; j < 42; j++)
-	{
-		RiskBoard.create(tp[j]);
-	}
-	
-	RiskBoard.printMap();
+	Map m;
+	m.loadMap("random.txt");
 
 	system("pause");
 	return 1;
@@ -198,5 +284,9 @@ int main()
 }
 
 Territory::Territory()
+{
+}
+
+MapLoader::MapLoader()
 {
 }
